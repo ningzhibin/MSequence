@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Template Generator for Thermo Xcalibur </title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input[type="file"],
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="file"] {
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="date"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        input[type="date"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .file-name-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+
+        .file-name-section > label {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .file-name-field {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: move;
+            transition: background-color 0.2s, transform 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .file-name-field:hover {
+            background: #f0f4ff;
+        }
+
+        .file-name-field.dragging {
+            opacity: 0.5;
+            border-color: #667eea;
+        }
+
+        .file-name-field.drag-over {
+            background: #e8f4f8;
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .file-name-field:last-child {
+            margin-bottom: 0;
+        }
+
+        .drag-handle {
+            cursor: grab;
+            color: #667eea;
+            font-size: 18px;
+            user-select: none;
+            padding: 0 5px;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .file-name-field input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .file-name-field input[type="text"],
+        .file-name-field input[type="date"] {
+            flex: 1;
+            margin: 0;
+        }
+
+        .file-name-field input[type="text"]:disabled,
+        .file-name-field input[type="date"]:disabled {
+            background: #f0f0f0;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .file-name-field label {
+            min-width: 100px;
+            margin: 0;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .file-name-preview {
+            margin-top: 15px;
+            padding: 15px;
+            background: #e8f4f8;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+
+        .file-name-preview label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .file-name-preview .preview-text {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #555;
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            word-break: break-all;
+        }
+
+        .file-name-preview .preview-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .input-method-toggle {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 15px;
+        }
+
+        .input-method-toggle input[type="radio"] {
+            display: none;
+        }
+
+        .input-method-toggle label {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .input-method-toggle input[type="radio"]:checked + label {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .input-method-toggle label:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .input-method-toggle input[type="radio"]:checked + label:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .input-method-content {
+            display: none;
+        }
+
+        .input-method-content.active {
+            display: block;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            min-height: 150px;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .data-preview-table {
+            margin-top: 15px;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+        }
+
+        .data-preview-table table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .data-preview-table th {
+            background: #667eea;
+            color: white;
+            padding: 8px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-weight: 600;
+        }
+
+        .data-preview-table td {
+            padding: 6px 8px;
+            text-align: left;
+            border: 1px solid #e0e0e0;
+        }
+
+        .data-preview-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .data-preview-table tr:hover {
+            background: #e8f4f8;
+        }
+
+        .data-preview-table .row-label {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+            text-align: center;
+            position: sticky;
+            left: 0;
+            z-index: 5;
+        }
+
+        .data-preview-table .header-row-label {
+            background: #764ba2;
+            color: white;
+            font-weight: 600;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            left: 0;
+            z-index: 15;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            flex: 1;
+            margin-top: 10px;
+        }
+
+        button[type="button"] {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        }
+
+        button[type="button"]:hover {
+            box-shadow: 0 5px 15px rgba(72, 187, 120, 0.4);
+        }
+
+        #copyTSVBtn {
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+        }
+
+        #copyTSVBtn:hover {
+            box-shadow: 0 5px 15px rgba(66, 153, 225, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .preview {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .preview h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 18px;
+        }
+
+        .preview table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .preview th,
+        .preview td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .preview th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .preview tr:hover {
+            background: #f0f0f0;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CSV Template Generator for Thermo Xcalibur</h1>
+        <p class="subtitle">Generate CSV template file for Thermo Xcalibur for MS analysis from 96/384-well plate layouts</p>
+
+        <form id="csvForm">
+            <div class="form-group">
+                <label for="layoutPaste">Paste Layout Data</label>
+                <textarea id="layoutPaste" required>	1	2	3	4	5	6	7	8
+A	WT1_I_A	WT1_I_B	WT1_I_C	WT2_I_A	WT2_I_B	WT2_I_C	WT3_I_A	WT3_I_B	
+B	WT1_II_A	WT1_II_B	WT1_II_C	WT2_II_A	WT2_II_B	WT2_II_C	WT3_II_A	WT3_II_B	
+C	WT1_III_A	WT1_III_B	WT1_III_C	WT2_III_A	WT2_III_B	WT2_III_C	WT3_III_A	WT3_III_B	
+D	WT1_IV_A	WT1_IV_B	WT1_IV_C	WT2_IV_A	WT2_IV_B	WT2_IV_C	WT3_IV_A	WT3_IV_B
+</textarea>
+                <div class="help-text">Paste your plate layout data (supports 96-well: 12 columns × 8 rows A-H, or 384-well: 24 columns × 16 rows A-P). First row should be column numbers, first column should be row letters.</div>
+                <div id="dataPreviewTable" class="data-preview-table" style="display: none;">
+                    <label style="display: block; margin-bottom: 10px; font-weight: 600; color: #333;">Data Preview:</label>
+                    <div id="tableContent"></div>
+                </div>
+            </div>
+
+            <div class="file-name-section">
+                <label>File Name Components</label>
+                <div class="help-text" style="margin-bottom: 15px;">Select components to include in file names. Drag to reorder (joined with underscores, then joined with sample name)</div>
+                
+                <div id="fileNameComponentsContainer">
+                    <div class="file-name-field" data-component="service" draggable="true">
+                        <span class="drag-handle">☰</span>
+                        <input type="checkbox" id="includeService" checked>
+                        <label for="serviceField">Service:</label>
+                        <input type="text" id="serviceField" value="Service" placeholder="Service">
+                    </div>
+
+                    <div class="file-name-field" data-component="date" draggable="true">
+                        <span class="drag-handle">☰</span>
+                        <input type="checkbox" id="includeDate" checked>
+                        <label for="dateField">Date:</label>
+                        <input type="date" id="dateField">
+                    </div>
+
+                    <div class="file-name-field" data-component="project" draggable="true">
+                        <span class="drag-handle">☰</span>
+                        <input type="checkbox" id="includeProject" checked>
+                        <label for="projectField">Project:</label>
+                        <input type="text" id="projectField" value="project" placeholder="project">
+                    </div>
+
+                    <div class="file-name-field" data-component="plate" draggable="true">
+                        <span class="drag-handle">☰</span>
+                        <input type="checkbox" id="includePlate" checked>
+                        <label for="plateField">Plate ID:</label>
+                        <input type="text" id="plateField" value="Plate1" placeholder="Plate1">
+                    </div>
+
+                    <div class="file-name-field" data-component="position" draggable="true">
+                        <span class="drag-handle">☰</span>
+                        <input type="checkbox" id="includePosition" checked>
+                        <label for="positionOnPlate">Position on Plate:</label>
+                        <input type="text" id="positionOnPlate" value="A1" placeholder="A1" disabled style="opacity: 0.6;">
+                        <div class="help-text" style="margin-left: 10px; font-size: 11px; color: #888;">Adds well position (e.g., A1, C12) to each file name</div>
+                    </div>
+                </div>
+
+                <div class="file-name-preview">
+                    <label>File Name Preview:</label>
+                    <div class="preview-text" id="fileNamePreview">Service_20260126_project_Plate1_A1_SampleName</div>
+                    <div class="preview-label">Example: [Prefix]_[Position]_[SampleName]</div>
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="form-group">
+                    <label for="positionPrefix">Position Prefix</label>
+                    <input type="text" id="positionPrefix" placeholder="e.g., B:" value="B:" required>
+                    <div class="help-text">Prefix for well positions (e.g., B (blue): for B:A1, B:B1, etc.)</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="injVol">Injection Volume</label>
+                    <input type="number" id="injVol" value="1" min="0" step="0.1" required>
+                    <div class="help-text">Default injection volume</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="path">Path</label>
+                <input type="text" id="path" value="D:\raw" placeholder="e.g., D:\XU_20251101_P04\" required>
+                <div class="help-text">File path for the output directory</div>
+            </div>
+
+            <div class="form-group">
+                <label for="instrumentMethod">Instrument Method</label>
+                <input type="text" id="instrumentMethod" value="C:\method\change_to_you_own" placeholder="e.g., C:\Xcalibur\methods\..." required>
+                <div class="help-text">Path to the instrument method file</div>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" id="generateBtn">Download CSV</button>
+                <button type="button" id="copyBtn">Copy CSV</button>
+                <button type="button" id="copyTSVBtn">Copy TSV</button>
+            </div>
+        </form>
+
+        <div id="status" class="status"></div>
+
+        <div id="preview" class="preview">
+            <h3>CSV Preview</h3>
+            <div id="previewContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // Set default date to today in YYYYMMDD format
+        function getTodayDateString() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Update file name preview
+        function updateFileNamePreview() {
+            const prefix = buildFileNamePrefix();
+            const sampleName = 'SampleName'; // Example sample name for preview
+            const includePosition = document.getElementById('includePosition').checked;
+            const position = includePosition ? 'A1_' : '';
+            const previewText = prefix ? `${prefix}_${position}${sampleName}` : `${position}${sampleName}`;
+            document.getElementById('fileNamePreview').textContent = previewText;
+            
+            // Update preview label
+            const previewLabel = document.getElementById('fileNamePreview').nextElementSibling;
+            if (includePosition) {
+                previewLabel.textContent = 'Example: [Prefix]_[Position]_[SampleName]';
+            } else {
+                previewLabel.textContent = 'Example: [Prefix]_[SampleName]';
+            }
+        }
+
+        // Real-time CSV preview function
+        function updateCSVPreview() {
+            const pasteInput = document.getElementById('layoutPaste');
+            const layoutText = pasteInput.value.trim();
+            
+            if (!layoutText) {
+                document.getElementById('preview').style.display = 'none';
+                return;
+            }
+            
+            try {
+                const fileNamePrefix = buildFileNamePrefix();
+                const positionPrefix = document.getElementById('positionPrefix').value.trim();
+                const path = document.getElementById('path').value.trim();
+                const instrumentMethod = document.getElementById('instrumentMethod').value.trim();
+                const injVol = document.getElementById('injVol').value;
+
+                const rows = parseLayoutFile(layoutText);
+                
+                if (rows.length === 0) {
+                    document.getElementById('preview').style.display = 'none';
+                    return;
+                }
+                
+                const csvContent = generateCSVContent(rows, fileNamePrefix, positionPrefix, path, instrumentMethod, injVol);
+                showPreview(csvContent);
+            } catch (error) {
+                document.getElementById('preview').style.display = 'none';
+            }
+        }
+
+        // Initialize date field with today's date and set up checkbox handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('dateField').value = getTodayDateString();
+            
+            // Show data preview table when pasting data
+            const layoutPaste = document.getElementById('layoutPaste');
+            const dataPreviewTable = document.getElementById('dataPreviewTable');
+            const tableContent = document.getElementById('tableContent');
+            
+            // Show preview for default data on page load
+            setTimeout(function() {
+                updateDataPreview();
+                updateCSVPreview();
+            }, 100);
+            
+            function updateDataPreview() {
+                const text = layoutPaste.value;
+                if (!text.trim()) {
+                    dataPreviewTable.style.display = 'none';
+                    return;
+                }
+                
+                try {
+                    const lines = text.split(/\r?\n/).filter(line => line.trim());
+                    if (lines.length === 0) {
+                        dataPreviewTable.style.display = 'none';
+                        return;
+                    }
+                    
+                    // Parse all lines, preserving empty cells
+                    const parsedLines = lines.map((line, lineIndex) => {
+                        // Don't trim the line before splitting - we need to preserve leading delimiters
+                        const originalLine = line;
+                        const trimmedLine = line.trim();
+                        
+                        // Check if line contains tabs (tabs take precedence)
+                        const hasTabs = originalLine.includes('\t');
+                        
+                        // Split by delimiter, preserving empty cells
+                        let cells;
+                        if (hasTabs) {
+                            // Split by tab, preserving empty cells
+                            cells = originalLine.split('\t');
+                        } else {
+                            // Split by comma
+                            cells = originalLine.split(',');
+                            // If original line starts with comma (even after considering whitespace), ensure empty first cell
+                            if (trimmedLine.startsWith(',') && cells.length > 0 && cells[0].trim() !== '') {
+                                cells.unshift('');
+                            }
+                        }
+                        
+                        // Trim each cell but preserve empty strings and "/" placeholder
+                        cells = cells.map(cell => cell.trim());
+                        
+                        return cells;
+                    });
+                    
+                    // Determine the maximum number of columns
+                    let maxCols = 0;
+                    parsedLines.forEach(cells => {
+                        maxCols = Math.max(maxCols, cells.length);
+                    });
+                    
+                    // Ensure all rows have the same number of columns (pad with empty strings if needed)
+                    parsedLines.forEach(cells => {
+                        while (cells.length < maxCols) {
+                            cells.push('');
+                        }
+                    });
+                    
+                    let html = '<table>';
+                    parsedLines.forEach((cells, index) => {
+                        html += '<tr>';
+                        cells.forEach((cell, cellIndex) => {
+                            // Replace "/" placeholder with empty string for display in top-left corner
+                            const displayCell = (cell === '/' && index === 0 && cellIndex === 0) ? '' : cell;
+                            
+                            if (index === 0 && cellIndex === 0) {
+                                // Top-left corner cell
+                                html += `<th class="header-row-label">${displayCell || ''}</th>`;
+                            } else if (index === 0) {
+                                // Header row
+                                html += `<th>${displayCell || ''}</th>`;
+                            } else if (cellIndex === 0) {
+                                // First column (row labels)
+                                html += `<td class="row-label">${displayCell || ''}</td>`;
+                            } else {
+                                // Data cells
+                                html += `<td>${displayCell || ''}</td>`;
+                            }
+                        });
+                        html += '</tr>';
+                    });
+                    html += '</table>';
+                    tableContent.innerHTML = html;
+                    dataPreviewTable.style.display = 'block';
+                } catch (error) {
+                    console.error('Preview error:', error);
+                    dataPreviewTable.style.display = 'none';
+                }
+            }
+            
+            function fixFirstCellIfEmpty() {
+                const text = layoutPaste.value;
+                if (!text.trim()) return;
+                
+                const lines = text.split(/\r?\n/);
+                if (lines.length === 0) return;
+                
+                const firstLine = lines[0];
+                if (!firstLine.trim()) return;
+                
+                // Check if first cell is empty
+                const hasTabs = firstLine.includes('\t');
+                
+                // Split to check if first cell is empty
+                let cells;
+                if (hasTabs) {
+                    cells = firstLine.split('\t');
+                } else {
+                    cells = firstLine.split(',');
+                }
+                
+                // Check if first cell is empty (after trimming)
+                const firstCellEmpty = cells.length > 0 && (!cells[0] || cells[0].trim() === '');
+                
+                // Also check if line starts with delimiter (which indicates empty first cell)
+                const startsWithDelimiter = hasTabs ? firstLine.trim().startsWith('\t') : firstLine.trim().startsWith(',');
+                
+                if (firstCellEmpty || startsWithDelimiter) {
+                    // Only fix if not already fixed (doesn't start with "/")
+                    if (!firstLine.trim().startsWith('/')) {
+                        // Add "/" placeholder at the beginning
+                        if (hasTabs) {
+                            lines[0] = '/' + '\t' + firstLine.trim();
+                        } else {
+                            lines[0] = '/' + ',' + firstLine.trim();
+                        }
+                        layoutPaste.value = lines.join('\n');
+                        return true; // Indicate that we made a change
+                    }
+                }
+                return false;
+            }
+            
+            layoutPaste.addEventListener('input', function() {
+                // Fix first cell first, then update preview
+                fixFirstCellIfEmpty();
+                // Use setTimeout to ensure the textarea value is updated
+                setTimeout(function() {
+                    updateDataPreview();
+                    updateCSVPreview();
+                }, 0);
+            });
+            
+            layoutPaste.addEventListener('paste', function() {
+                setTimeout(function() {
+                    // Fix first cell first, then update preview
+                    fixFirstCellIfEmpty();
+                    updateDataPreview();
+                    updateCSVPreview();
+                }, 10); // Small delay to allow paste to complete
+            });
+            
+            // Add real-time preview updates for other form fields
+            document.getElementById('positionPrefix').addEventListener('input', updateCSVPreview);
+            document.getElementById('path').addEventListener('input', updateCSVPreview);
+            document.getElementById('instrumentMethod').addEventListener('input', updateCSVPreview);
+            document.getElementById('injVol').addEventListener('input', updateCSVPreview);
+            
+            // Update CSV preview when file name components change
+            document.getElementById('includeService').addEventListener('change', function() {
+                updateFileNamePreview();
+                updateCSVPreview();
+            });
+            document.getElementById('includeDate').addEventListener('change', function() {
+                updateFileNamePreview();
+                updateCSVPreview();
+            });
+            document.getElementById('includeProject').addEventListener('change', function() {
+                updateFileNamePreview();
+                updateCSVPreview();
+            });
+            document.getElementById('includePlate').addEventListener('change', function() {
+                updateFileNamePreview();
+                updateCSVPreview();
+            });
+            
+            document.getElementById('serviceField').addEventListener('input', function() {
+                updateFileNamePreview();
+                updateCSVPreview();
+            });
+            document.getElementById('dateField').addEventListener('change', function() {
+                updateFileNamePreview();
+                updateCSVPreview();
+            });
+            document.getElementById('projectField').addEventListener('input', function() {
+                updateFileNamePreview();
+                updateCSVPreview();
+            });
+            document.getElementById('plateField').addEventListener('input', function() {
+                updateFileNamePreview();
+                updateCSVPreview();
+            });
+            
+            // Enable/disable input fields based on checkbox state and update preview
+            function toggleField(checkboxId, inputId) {
+                const checkbox = document.getElementById(checkboxId);
+                const input = document.getElementById(inputId);
+                input.disabled = !checkbox.checked;
+                
+                checkbox.addEventListener('change', function() {
+                    input.disabled = !this.checked;
+                    updateFileNamePreview();
+                    updateCSVPreview();
+                });
+                
+                // Update preview when input changes
+                input.addEventListener('input', function() {
+                    updateFileNamePreview();
+                    updateCSVPreview();
+                });
+                input.addEventListener('change', function() {
+                    updateFileNamePreview();
+                    updateCSVPreview();
+                });
+            }
+            
+            toggleField('includeService', 'serviceField');
+            toggleField('includeDate', 'dateField');
+            toggleField('includeProject', 'projectField');
+            toggleField('includePlate', 'plateField');
+            
+            // Handle position checkbox (no input field to enable/disable, just toggle)
+            const includePositionCheckbox = document.getElementById('includePosition');
+            includePositionCheckbox.addEventListener('change', function() {
+                updateFileNamePreview();
+                updateCSVPreview();
+            });
+            
+            // Drag and drop functionality for file name components
+            const container = document.getElementById('fileNameComponentsContainer');
+            let draggedElement = null;
+            
+            container.addEventListener('dragstart', function(e) {
+                if (e.target.classList.contains('file-name-field')) {
+                    draggedElement = e.target;
+                    e.target.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/html', e.target.innerHTML);
+                } else if (e.target.closest('.file-name-field')) {
+                    draggedElement = e.target.closest('.file-name-field');
+                    draggedElement.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/html', draggedElement.innerHTML);
+                }
+            });
+            
+            container.addEventListener('dragend', function(e) {
+                if (draggedElement) {
+                    draggedElement.classList.remove('dragging');
+                    draggedElement = null;
+                }
+            });
+            
+            container.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                
+                const afterElement = getDragAfterElement(container, e.clientY);
+                const dragging = document.querySelector('.dragging');
+                
+                if (afterElement == null) {
+                    container.appendChild(dragging);
+                } else {
+                    container.insertBefore(dragging, afterElement);
+                }
+            });
+            
+            container.addEventListener('dragenter', function(e) {
+                if (e.target.classList.contains('file-name-field') && !e.target.classList.contains('dragging')) {
+                    e.target.classList.add('drag-over');
+                }
+            });
+            
+            container.addEventListener('dragleave', function(e) {
+                if (e.target.classList.contains('file-name-field')) {
+                    e.target.classList.remove('drag-over');
+                }
+            });
+            
+            container.addEventListener('drop', function(e) {
+                e.preventDefault();
+                const fields = container.querySelectorAll('.file-name-field');
+                fields.forEach(field => field.classList.remove('drag-over'));
+                
+                // Update preview after reordering
+                updateFileNamePreview();
+                updateCSVPreview();
+            });
+            
+            function getDragAfterElement(container, y) {
+                const draggableElements = [...container.querySelectorAll('.file-name-field:not(.dragging)')];
+                
+                return draggableElements.reduce((closest, child) => {
+                    const box = child.getBoundingClientRect();
+                    const offset = y - box.top - box.height / 2;
+                    
+                    if (offset < 0 && offset > closest.offset) {
+                        return { offset: offset, element: child };
+                    } else {
+                        return closest;
+                    }
+                }, { offset: Number.NEGATIVE_INFINITY }).element;
+            }
+            
+            // Prevent text inputs from triggering drag
+            container.querySelectorAll('input, label').forEach(element => {
+                element.addEventListener('mousedown', function(e) {
+                    if (e.target.type !== 'checkbox' && e.target.tagName !== 'LABEL') {
+                        e.stopPropagation();
+                    }
+                });
+            });
+            
+            // Initial preview update
+            updateFileNamePreview();
+        });
+
+        document.getElementById('csvForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            generateCSV();
+        });
+
+        // Copy CSV data to clipboard
+        document.getElementById('copyBtn').addEventListener('click', function() {
+            copyCSVToClipboard();
+        });
+
+        // Copy TSV data to clipboard
+        document.getElementById('copyTSVBtn').addEventListener('click', function() {
+            copyTSVToClipboard();
+        });
+
+        function copyCSVToClipboard() {
+            const pasteInput = document.getElementById('layoutPaste');
+            const layoutText = pasteInput.value.trim();
+            
+            if (!layoutText) {
+                showStatus('Please paste layout data first', 'error');
+                return;
+            }
+            
+            try {
+                const fileNamePrefix = buildFileNamePrefix();
+                const positionPrefix = document.getElementById('positionPrefix').value.trim();
+                const path = document.getElementById('path').value.trim();
+                const instrumentMethod = document.getElementById('instrumentMethod').value.trim();
+                const injVol = document.getElementById('injVol').value;
+
+                const rows = parseLayoutFile(layoutText);
+                
+                if (rows.length === 0) {
+                    showStatus('No valid data found in layout. Please check your input format.', 'error');
+                    return;
+                }
+                
+                const csvContent = generateCSVContent(rows, fileNamePrefix, positionPrefix, path, instrumentMethod, injVol);
+                
+                // Copy to clipboard
+                navigator.clipboard.writeText(csvContent).then(function() {
+                    showStatus('CSV data copied to clipboard!', 'success');
+                }).catch(function(err) {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = csvContent;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-999999px';
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        showStatus('CSV data copied to clipboard!', 'success');
+                    } catch (err) {
+                        showStatus('Failed to copy data. Please try downloading instead.', 'error');
+                    }
+                    document.body.removeChild(textArea);
+                });
+            } catch (error) {
+                showStatus('Error: ' + error.message, 'error');
+                console.error(error);
+            }
+        }
+
+        function copyTSVToClipboard() {
+            const pasteInput = document.getElementById('layoutPaste');
+            const layoutText = pasteInput.value.trim();
+            
+            if (!layoutText) {
+                showStatus('Please paste layout data first', 'error');
+                return;
+            }
+            
+            try {
+                const fileNamePrefix = buildFileNamePrefix();
+                const positionPrefix = document.getElementById('positionPrefix').value.trim();
+                const path = document.getElementById('path').value.trim();
+                const instrumentMethod = document.getElementById('instrumentMethod').value.trim();
+                const injVol = document.getElementById('injVol').value;
+
+                const rows = parseLayoutFile(layoutText);
+                
+                if (rows.length === 0) {
+                    showStatus('No valid data found in layout. Please check your input format.', 'error');
+                    return;
+                }
+                
+                // Generate CSV content first
+                const csvContent = generateCSVContent(rows, fileNamePrefix, positionPrefix, path, instrumentMethod, injVol);
+                
+                // Convert CSV to TSV (replace commas with tabs)
+                const tsvContent = csvContent.split('\n').map(line => {
+                    return line.split(',').join('\t');
+                }).join('\n');
+                
+                // Copy to clipboard
+                navigator.clipboard.writeText(tsvContent).then(function() {
+                    showStatus('TSV data copied to clipboard! Ready to paste into Excel.', 'success');
+                }).catch(function(err) {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = tsvContent;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-999999px';
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        showStatus('TSV data copied to clipboard! Ready to paste into Excel.', 'success');
+                    } catch (err) {
+                        showStatus('Failed to copy data. Please try downloading instead.', 'error');
+                    }
+                    document.body.removeChild(textArea);
+                });
+            } catch (error) {
+                showStatus('Error: ' + error.message, 'error');
+                console.error(error);
+            }
+        }
+
+        // Component order storage
+        let componentOrder = ['service', 'date', 'project', 'plate'];
+
+        function buildFileNamePrefix() {
+            const parts = [];
+            
+            // Get the current order of components from the DOM
+            const container = document.getElementById('fileNameComponentsContainer');
+            const orderedComponents = Array.from(container.children).map(field => field.getAttribute('data-component'));
+            
+            // Build parts in the current order
+            orderedComponents.forEach(component => {
+                let value = null;
+                
+                switch(component) {
+                    case 'service':
+                        if (document.getElementById('includeService').checked) {
+                            value = document.getElementById('serviceField').value.trim() || 'Service';
+                        }
+                        break;
+                    case 'date':
+                        if (document.getElementById('includeDate').checked) {
+                            const dateValue = document.getElementById('dateField').value;
+                            if (dateValue) {
+                                // Convert YYYY-MM-DD to YYYYMMDD
+                                const dateParts = dateValue.split('-');
+                                value = dateParts.join('');
+                            } else {
+                                // Fallback to today's date if not set
+                                const today = new Date();
+                                const year = today.getFullYear();
+                                const month = String(today.getMonth() + 1).padStart(2, '0');
+                                const day = String(today.getDate()).padStart(2, '0');
+                                value = `${year}${month}${day}`;
+                            }
+                        }
+                        break;
+                    case 'project':
+                        if (document.getElementById('includeProject').checked) {
+                            value = document.getElementById('projectField').value.trim() || 'project';
+                        }
+                        break;
+                    case 'plate':
+                        if (document.getElementById('includePlate').checked) {
+                            value = document.getElementById('plateField').value.trim() || 'Plate1';
+                        }
+                        break;
+                }
+                
+                if (value) {
+                    parts.push(value);
+                }
+            });
+            
+            // If no components selected, return empty string (will just use sample name)
+            if (parts.length === 0) {
+                return '';
+            }
+            
+            return parts.join('_');
+        }
+
+        function generateCSV() {
+            const fileNamePrefix = buildFileNamePrefix();
+            const positionPrefix = document.getElementById('positionPrefix').value.trim();
+            const path = document.getElementById('path').value.trim();
+            const instrumentMethod = document.getElementById('instrumentMethod').value.trim();
+            const injVol = document.getElementById('injVol').value;
+
+            // Get pasted data
+            const pasteInput = document.getElementById('layoutPaste');
+            const layoutText = pasteInput.value.trim();
+            
+            if (!layoutText) {
+                showStatus('Please paste layout data', 'error');
+                return;
+            }
+            
+            try {
+                processLayoutData(layoutText, fileNamePrefix, positionPrefix, path, instrumentMethod, injVol);
+            } catch (error) {
+                showStatus('Error: ' + error.message, 'error');
+                console.error(error);
+            }
+        }
+
+        function processLayoutData(layoutText, fileNamePrefix, positionPrefix, path, instrumentMethod, injVol) {
+            const rows = parseLayoutFile(layoutText);
+            
+            if (rows.length === 0) {
+                showStatus('No valid data found in layout. Please check your input format.', 'error');
+                return;
+            }
+            
+            const csvContent = generateCSVContent(rows, fileNamePrefix, positionPrefix, path, instrumentMethod, injVol);
+            
+            // Download the CSV
+            downloadCSV(csvContent, 'sequence.csv');
+            
+            // Show preview
+            showPreview(csvContent);
+            showStatus('CSV generated successfully!', 'success');
+        }
+
+        function parseLayoutFile(text) {
+            const lines = text.split(/\r?\n/).filter(line => line.trim());
+            const rows = [];
+            
+            if (lines.length === 0) return rows;
+            
+            // Detect plate format by checking first header row
+            const headerLine = lines[0].trim();
+            const headerCells = headerLine.split(/\t|,/).map(cell => cell.trim());
+            // Count columns (excluding the first empty cell if present)
+            const numColumns = headerCells.length > 0 && (!headerCells[0] || headerCells[0] === '' || headerCells[0] === '/') 
+                ? headerCells.length - 1 
+                : headerCells.length;
+            
+            // Determine max columns based on detected format (96-well: 12, 384-well: 24)
+            // Auto-detect: if we see more than 12 columns, assume 384-well
+            const maxColumns = numColumns > 12 ? 24 : 12;
+            
+            // Skip the first line (column headers: 1, 2, 3, ...)
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                // Split by tab or comma
+                const cells = line.split(/\t|,/).map(cell => cell.trim());
+                
+                if (cells.length < 2) continue;
+                
+                const rowLetter = cells[0]; // A, B, C, etc. (up to P for 384-well)
+                
+                // Process columns up to maxColumns (indices 1 to maxColumns in the array)
+                for (let col = 1; col <= maxColumns && col < cells.length; col++) {
+                    const sampleName = cells[col];
+                    // Only add non-empty cells
+                    if (sampleName && sampleName !== '') {
+                        rows.push({
+                            row: rowLetter,
+                            col: col,
+                            sampleName: sampleName,
+                            position: rowLetter + col
+                        });
+                    }
+                }
+            }
+            
+            return rows;
+        }
+
+        function generateCSVContent(rows, fileNamePrefix, positionPrefix, path, instrumentMethod, injVol) {
+            let csv = 'Bracket Type=4,,,,\n';
+            csv += 'File Name,Path,Instrument Method,Position,Inj Vol\n';
+            
+            const includePosition = document.getElementById('includePosition').checked;
+            
+            rows.forEach(row => {
+                // Build file name: prefix_position_sampleName (or prefix_sampleName if no position, or just sampleName if no prefix)
+                let fileName;
+                if (fileNamePrefix) {
+                    if (includePosition) {
+                        fileName = `${fileNamePrefix}_${row.position}_${row.sampleName}`;
+                    } else {
+                        fileName = `${fileNamePrefix}_${row.sampleName}`;
+                    }
+                } else {
+                    if (includePosition) {
+                        fileName = `${row.position}_${row.sampleName}`;
+                    } else {
+                        fileName = row.sampleName;
+                    }
+                }
+                const position = `${positionPrefix}${row.position}`;
+                csv += `${fileName},${path},${instrumentMethod},${position},${injVol}\n`;
+            });
+            
+            return csv;
+        }
+
+        function downloadCSV(content, filename) {
+            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function showPreview(csvContent) {
+            const lines = csvContent.split('\n').filter(line => line.trim());
+            const previewDiv = document.getElementById('preview');
+            const previewContent = document.getElementById('previewContent');
+            
+            // Show all lines
+            let html = '<table>';
+            lines.forEach((line, index) => {
+                const cells = line.split(',');
+                html += '<tr>';
+                cells.forEach(cell => {
+                    const tag = index === 0 || index === 1 ? 'th' : 'td';
+                    html += `<${tag}>${cell || ''}</${tag}>`;
+                });
+                html += '</tr>';
+            });
+            html += '</table>';
+            
+            previewContent.innerHTML = html;
+            previewDiv.style.display = 'block';
+        }
+
+        // Real-time preview function
+        function updateCSVPreview() {
+            const pasteInput = document.getElementById('layoutPaste');
+            const layoutText = pasteInput.value.trim();
+            
+            if (!layoutText) {
+                document.getElementById('preview').style.display = 'none';
+                return;
+            }
+            
+            try {
+                const fileNamePrefix = buildFileNamePrefix();
+                const positionPrefix = document.getElementById('positionPrefix').value.trim();
+                const path = document.getElementById('path').value.trim();
+                const instrumentMethod = document.getElementById('instrumentMethod').value.trim();
+                const injVol = document.getElementById('injVol').value;
+
+                const rows = parseLayoutFile(layoutText);
+                
+                if (rows.length === 0) {
+                    document.getElementById('preview').style.display = 'none';
+                    return;
+                }
+                
+                const csvContent = generateCSVContent(rows, fileNamePrefix, positionPrefix, path, instrumentMethod, injVol);
+                showPreview(csvContent);
+            } catch (error) {
+                document.getElementById('preview').style.display = 'none';
+            }
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>
