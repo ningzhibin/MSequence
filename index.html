@@ -442,6 +442,61 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        footer {
+            margin-top: 50px;
+            padding: 30px 40px;
+            background: #f8f9fa;
+            color: #333;
+            border-radius: 12px 12px 0 0;
+            text-align: center;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        footer h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        footer p {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        footer a {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 14px;
+            transition: color 0.3s;
+            display: inline-block;
+        }
+
+        footer a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        footer .footer-links {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        @media (max-width: 600px) {
+            footer .footer-links {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            footer a {
+                margin: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -553,6 +608,18 @@ D	WT1_IV_A	WT1_IV_B	WT1_IV_C	WT2_IV_A	WT2_IV_B	WT2_IV_C	WT3_IV_A	WT3_IV_B
             <h3>CSV Preview</h3>
             <div id="previewContent"></div>
         </div>
+
+        <footer>
+            <h3>Proteomics Resource Center</h3>
+            <p>University of Ottawa Faculty of Medicine</p>
+            <div class="footer-links">
+                <a href="https://www.uottawa.ca/faculty-medicine/research-and-innovation/core-facilities/proteomics" target="_blank" rel="noopener noreferrer">Proteomics Resource Center</a>
+                <a href="https://ningzhibin.github.io/PRC_wiki/" target="_blank" rel="noopener noreferrer">PRC Wiki</a>
+                
+            </div>
+            <br>
+            <p>Last Updated @20260129</p>
+        </footer>
     </div>
 
     <script>
@@ -1204,13 +1271,14 @@ D	WT1_IV_A	WT1_IV_B	WT1_IV_C	WT2_IV_A	WT2_IV_B	WT2_IV_C	WT3_IV_A	WT3_IV_B
                     const sampleName = cells[col];
                     // Only add non-empty cells
                     if (sampleName && sampleName !== '') {
-                        // Format position with zero-padded column number (A01, A02, ..., A12, A24)
-                        const colPadded = String(col).padStart(2, '0');
+                        // Store position without zero-padding for Position column (A1, A2, etc.)
+                        // Zero-padded version will be generated when needed for file names
                         rows.push({
                             row: rowLetter,
                             col: col,
                             sampleName: sampleName,
-                            position: rowLetter + colPadded
+                            position: rowLetter + col,
+                            positionPadded: rowLetter + String(col).padStart(2, '0') // For file name use
                         });
                     }
                 }
@@ -1227,20 +1295,24 @@ D	WT1_IV_A	WT1_IV_B	WT1_IV_C	WT2_IV_A	WT2_IV_B	WT2_IV_C	WT3_IV_A	WT3_IV_B
             
             rows.forEach(row => {
                 // Build file name: prefix_position_sampleName (or prefix_sampleName if no position, or just sampleName if no prefix)
+                // Use zero-padded position (A01) for file name, but regular position (A1) for Position column
                 let fileName;
+                const positionForFileName = includePosition ? row.positionPadded : null;
+                
                 if (fileNamePrefix) {
                     if (includePosition) {
-                        fileName = `${fileNamePrefix}_${row.position}_${row.sampleName}`;
+                        fileName = `${fileNamePrefix}_${positionForFileName}_${row.sampleName}`;
                     } else {
                         fileName = `${fileNamePrefix}_${row.sampleName}`;
                     }
                 } else {
                     if (includePosition) {
-                        fileName = `${row.position}_${row.sampleName}`;
+                        fileName = `${positionForFileName}_${row.sampleName}`;
                     } else {
                         fileName = row.sampleName;
                     }
                 }
+                // Position column uses non-padded format (A1, A2, etc.)
                 const position = `${positionPrefix}${row.position}`;
                 csv += `${fileName},${path},${instrumentMethod},${position},${injVol}\n`;
             });
