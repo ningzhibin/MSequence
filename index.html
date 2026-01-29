@@ -500,16 +500,16 @@ D	WT1_IV_A	WT1_IV_B	WT1_IV_C	WT2_IV_A	WT2_IV_B	WT2_IV_C	WT3_IV_A	WT3_IV_B
 
                     <div class="file-name-field" data-component="position" draggable="true">
                         <span class="drag-handle">☰</span>
-                        <input type="checkbox" id="includePosition" checked>
-                        <label for="positionOnPlate">Position on Plate:</label>
-                        <input type="text" id="positionOnPlate" value="A1" placeholder="A1" disabled style="opacity: 0.6;">
-                        <div class="help-text" style="margin-left: 10px; font-size: 11px; color: #888;">Adds well position (e.g., A1, C12) to each file name</div>
+                    <input type="checkbox" id="includePosition" checked>
+                    <label for="positionOnPlate">Position on Plate:</label>
+                    <input type="text" id="positionOnPlate" value="A01" placeholder="A01" disabled style="opacity: 0.6;">
+                    <div class="help-text" style="margin-left: 10px; font-size: 11px; color: #888;">Adds well position (e.g., A01, C12) to each file name</div>
                     </div>
                 </div>
 
                 <div class="file-name-preview">
                     <label>File Name Preview:</label>
-                    <div class="preview-text" id="fileNamePreview">Service_20260126_project_Plate1_A1_SampleName</div>
+                    <div class="preview-text" id="fileNamePreview">Service_20260126_project_Plate1_A01_SampleName</div>
                     <div class="preview-label">Example: [Prefix]_[Position]_[SampleName]</div>
                 </div>
             </div>
@@ -570,7 +570,7 @@ D	WT1_IV_A	WT1_IV_B	WT1_IV_C	WT2_IV_A	WT2_IV_B	WT2_IV_C	WT3_IV_A	WT3_IV_B
             const prefix = buildFileNamePrefix();
             const sampleName = 'SampleName'; // Example sample name for preview
             const includePosition = document.getElementById('includePosition').checked;
-            const position = includePosition ? 'A1_' : '';
+            const position = includePosition ? 'A01_' : '';
             const previewText = prefix ? `${prefix}_${position}${sampleName}` : `${position}${sampleName}`;
             document.getElementById('fileNamePreview').textContent = previewText;
             
@@ -1204,11 +1204,13 @@ D	WT1_IV_A	WT1_IV_B	WT1_IV_C	WT2_IV_A	WT2_IV_B	WT2_IV_C	WT3_IV_A	WT3_IV_B
                     const sampleName = cells[col];
                     // Only add non-empty cells
                     if (sampleName && sampleName !== '') {
+                        // Format position with zero-padded column number (A01, A02, ..., A12, A24)
+                        const colPadded = String(col).padStart(2, '0');
                         rows.push({
                             row: rowLetter,
                             col: col,
                             sampleName: sampleName,
-                            position: rowLetter + col
+                            position: rowLetter + colPadded
                         });
                     }
                 }
